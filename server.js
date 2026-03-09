@@ -1,18 +1,20 @@
 "use strict"
-console.log("Server");
+import logger from './utils/logger.js';
+logger.info("Server Starting");
+
 import express from 'express';
 const app = express();
 import { config } from './config/index.js';
 import morgan from 'morgan';
 import cors from 'cors';
 import helmet from 'helmet';
-import chalk from 'chalk';
 import bodyParser from 'body-parser';
 
 app.use(bodyParser.json({limit: '900mb'}));
 app.use(bodyParser.urlencoded({limit: '900mb', extended: true, parameterLimit:900000}));
 
-app.use(morgan('tiny'));
+// Direct morgan logs to winston
+app.use(morgan('tiny', { stream: { write: message => logger.http(message.trim()) } }));
 
 import confiCors from './config/cors.js';
 app.use(cors(confiCors));
@@ -28,5 +30,5 @@ import api from './app.js';
 app.use(api);
 
 const server = app.listen(config.port, () => {
-    console.log(chalk.green(`Server up on port ${config.port}`));
+    logger.info(`Server up on port ${config.port}`);
 });
